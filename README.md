@@ -42,4 +42,4 @@ npm run tauri dev
 
 ## Release workflow
 
-A GitHub Actions workflow now watches the `release` branch and `workflow_dispatch` events. It first verifies the frontend bundle and Playwright smoke test on Ubuntu, then builds/publishes draft Tauri releases for macOS, Linux, and Windows using `tauri-action`.
+A GitHub Actions workflow now runs automatically when a GitHub Release is published. It first verifies the frontend bundle and Playwright smoke test on Ubuntu, then builds platform executables/installers for macOS, Linux, and Windows and uploads them back to that published release via `tauri-action`.

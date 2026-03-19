@@ -1,14 +1,13 @@
-name: release-branch
+name: release-publish
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - release
+  release:
+    types:
+      - published
 
 concurrency:
-  group: release-branch-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-publish-${{ github.event.release.id }}
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -46,7 +45,7 @@ jobs:
         run: npm run test:e2e
 
   publish-tauri:
-    name: Publish Tauri bundles (${{ matrix.platform }})
+    name: Publish release executables (${{ matrix.platform }})
     needs: verify
     permissions:
       contents: write
@@ -85,7 +84,7 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
-      - name: Install dependencies (ubuntu only)
+      - name: Install Linux build dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
@@ -94,17 +93,11 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build and publish Tauri app
+      - name: Build and upload release assets
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: termai-v__VERSION__
-          releaseName: TermAI v__VERSION__
-          releaseBody: |
-            Automated release published from the `release` branch.
-
-            See the attached artifacts for platform-specific installers and bundles.
-          releaseDraft: true
-          prerelease: false
+          releaseId: ${{ github.event.release.id }}
+          tagName: ${{ github.event.release.tag_name }}
           args: ${{ matrix.args }}
